@@ -1,11 +1,21 @@
-#### Run for test result:
+### Run for test result
 ```bash
-./make.sh
+sudo usermod -aG docker $USER # Need docker rights
+
+./make.sh # Create image and container
 
 ansible-playbook -i inventory.yml install.yml
 ```
 
-#### Tools
+```
+systemctl -t service
+ls /opt/sos
+ls /opt/sos/log
+ls /opt/sos/venv
+```
+
+
+### Tools
 
 
 ```bash

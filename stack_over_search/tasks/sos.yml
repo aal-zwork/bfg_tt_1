@@ -11,8 +11,6 @@
     group: adm
     state: directory
     mode: 0770
-    recurse: yes
-  tags: ["test"]
 
 - name: Install python depends
   pip:
@@ -81,7 +79,6 @@
     src: sos.ini.j2
     dest: /etc/stackoversearch/stack_settings.ini
     mode: 0644
-  tags: ["test"]
 
 - name: Configure sos_web.service
   template:
@@ -95,7 +92,6 @@
     service_env1: "VIRTUALENV={{ __sos_python_venv_path }}"
     service_start: "{{ __sos_python_venv_path }}/bin/gunicorn stackoversearch.stack_oversearch:app --bind {{ sos_web_ip }}:{{ sos_web_port }} --workers 5 --worker-class aiohttp.worker.GunicornWebWorker"
   notify: restart sos_web
-  tags: ["test"]
 
 - name: Configure sos_back.service
   template:
@@ -109,7 +105,6 @@
     service_env1: "VIRTUALENV={{ __sos_python_venv_path }}"
     service_start: "{{ __sos_python_venv_path }}/bin/python -m stackoversearch.renewer"
   notify: restart sos_back
-  tags: ["test"]
 
 - name: Reload systemd daemon
   systemd:
@@ -117,26 +112,22 @@
   notify:
     - restart sos_back
     - restart sos_web
-  tags: ["test"]
 
 - name: set sos_web to start at boot
   service:
     name: sos_web
     enabled: yes
-  tags: ["test"]
 
 - name: set sos_back to start at boot
   service:
     name: sos_back
     enabled: yes
-  tags: ["test"]
 
 - name: delete default nginx site
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
   notify: restart nginx
-  tags: ["test"]
 
 - name: copy nginx site.conf
   template:
@@ -153,4 +144,3 @@
     server_access_log: "{{ sos_logs_path }}/access.log"
     server_error_log: "{{ sos_logs_path }}/error.log"
   notify: restart nginx
-  tags: ["test"]

@@ -14,7 +14,6 @@
         - "utils/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
         - "utils/{{ ansible_distribution }}.yml"
         - "utils/utils.yml"
-  tags: ["test"]
 
 - name: Ensure user existed
   include_tasks: user.yml
@@ -40,4 +39,3 @@
 
 - name: Configure sos
   include_tasks: sos.yml
-  tags: ["test"]
