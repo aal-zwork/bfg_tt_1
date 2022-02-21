@@ -1,0 +1,25 @@
+---
+- name: Ensure group exists with correct gid
+  group:
+    name: "{{ __sos_group_name }}"
+    gid: "{{ __sos_group_id }}"
+    state: present
+
+- name: Ensure user exists with correct gid
+  user:
+    name: "{{ __sos_user_name }}"
+    uid: "{{ __sos_user_id }}"
+    group: "{{ __sos_group_name }}"
+    shell: /bin/bash
+    home: "{{ sos_path }}"
+    move_home: true
+    state: present
+
+- name: Ensure virtualenv is sourced from the .bashrc
+  blockinfile:
+    dest: "{{ sos_path }}/.bashrc"
+    block: |
+      export PATH={{ __sos_python_env_path }}
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - virtualenv'
+    insertbefore: BOF
+    create: yes 

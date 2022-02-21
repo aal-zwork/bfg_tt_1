@@ -1,0 +1,5 @@
+---
+- name: Install services
+  apt:
+    pkg: "{{ __sos_services }}"
+    state: present

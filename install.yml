@@ -1,0 +1,5 @@
+- hosts: all
+  gather_facts: true
+  tasks:
+    - import_role:
+        name: stack_over_search

@@ -1,0 +1,5 @@
+---
+- name: Install utils
+  apt:
+    pkg: "{{ __sos_utils + __sos_python_build_depends }}"
+    state: present

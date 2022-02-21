@@ -1,0 +1,156 @@
+- name: Ensure src folder existed
+  file:
+    path: "{{ __sos_src_dir_path }}"
+    state: directory
+    recurse: yes
+
+- name: Ensure log folder existed
+  file:
+    path: "{{ sos_logs_path }}"
+    owner: "{{ __sos_user_name }}"
+    group: adm
+    state: directory
+    mode: 0770
+    recurse: yes
+  tags: ["test"]
+
+- name: Install python depends
+  pip:
+    name:
+      - gunicorn
+    virtualenv_command: pyvenv
+    virtualenv: "{{ __sos_python_venv_path }}"
+  environment:
+    PATH: "{{ __sos_python_env_path }}"
+
+- name: Install sos python depends
+  pip:
+    name: git+https://github.com/bfg-group/stack_over_search.git
+    virtualenv_command: pyvenv
+    virtualenv: "{{ __sos_python_venv_path }}"
+  environment:
+    PATH: "{{ __sos_python_env_path }}"
+
+# TODO: Workaround
+- name: Workaround Upgrade aiohttp
+  pip:
+    name:
+      - aiohttp>=3.8.1
+      - requests>=2.27.1
+    virtualenv_command: pyvenv
+    virtualenv: "{{ __sos_python_venv_path }}"
+  environment:
+    PATH: "{{ __sos_python_env_path }}"
+
+- name: Clone sos git repo
+  git:
+    repo: https://github.com/bfg-group/stack_over_search.git
+    dest: "{{ __sos_src_dir_path }}/stack_over_search"
+    force: yes
+
+- name: Ensure database existed
+  community.mysql.mysql_db:
+    name: "{{ sos_mysql_db }}"
+    login_host: "{{ sos_mysql_ip }}"
+    login_user: "{{ sos_mysql_user }}"
+    login_password: "{{ sos_mysql_password }}"
+    state: present
+
+- name: Ensure sql imported
+  community.mysql.mysql_query:
+    login_db: "{{ sos_mysql_db }}"
+    login_host: "{{ sos_mysql_ip }}"
+    login_user: "{{ sos_mysql_user }}"
+    login_password: "{{ sos_mysql_password }}"
+    query: show tables
+  register: __sos_mysql_tables
+  changed_when: __sos_mysql_tables.query_result[0]|length==0
+
+- name: Restore database
+  community.mysql.mysql_db:
+    name: "{{ sos_mysql_db }}"
+    login_host: "{{ sos_mysql_ip }}"
+    login_user: "{{ sos_mysql_user }}"
+    login_password: "{{ sos_mysql_password }}"
+    state: import
+    target: "{{ __sos_src_dir_path }}/stack_over_search/tables.sql"
+  when: __sos_mysql_tables.changed
+
+- name: Configure /etc/stackoversearch/stack_settings.ini
+  template:
+    src: sos.ini.j2
+    dest: /etc/stackoversearch/stack_settings.ini
+    mode: 0644
+  tags: ["test"]
+
+- name: Configure sos_web.service
+  template:
+    src: gunicorn.service.j2
+    dest: /etc/systemd/system/sos_web.service
+    mode: 0644
+  vars:
+    service_description: sos_web
+    service_user: "{{ __sos_user_name }}"
+    service_workdir: "{{ __sos_src_dir_path }}/stack_over_search"
+    service_env1: "VIRTUALENV={{ __sos_python_venv_path }}"
+    service_start: "{{ __sos_python_venv_path }}/bin/gunicorn stackoversearch.stack_oversearch:app --bind {{ sos_web_ip }}:{{ sos_web_port }} --workers 5 --worker-class aiohttp.worker.GunicornWebWorker"
+  notify: restart sos_web
+  tags: ["test"]
+
+- name: Configure sos_back.service
+  template:
+    src: gunicorn.service.j2
+    dest: /etc/systemd/system/sos_back.service
+    mode: 0644
+  vars:
+    service_description: sos_back
+    service_user: "{{ __sos_user_name }}"
+    service_workdir: "{{ __sos_src_dir_path }}/stack_over_search"
+    service_env1: "VIRTUALENV={{ __sos_python_venv_path }}"
+    service_start: "{{ __sos_python_venv_path }}/bin/python -m stackoversearch.renewer"
+  notify: restart sos_back
+  tags: ["test"]
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: true
+  notify:
+    - restart sos_back
+    - restart sos_web
+  tags: ["test"]
+
+- name: set sos_web to start at boot
+  service:
+    name: sos_web
+    enabled: yes
+  tags: ["test"]
+
+- name: set sos_back to start at boot
+  service:
+    name: sos_back
+    enabled: yes
+  tags: ["test"]
+
+- name: delete default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+  tags: ["test"]
+
+- name: copy nginx site.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-enabled/sos_web.conf
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    server_name: sos_web
+    server_root: "{{ __sos_src_dir_path }}/stack_over_search"
+    server_ip: "{{ sos_web_ip }}"
+    server_port: "{{ sos_web_port }}"
+    server_access_log: "{{ sos_logs_path }}/access.log"
+    server_error_log: "{{ sos_logs_path }}/error.log"
+  notify: restart nginx
+  tags: ["test"]

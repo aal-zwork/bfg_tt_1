@@ -1,0 +1,31 @@
+---
+# defaults for stack_over_search
+sos_python_version: 3.6.13
+sos_redis_version: 6.2.6
+# TODO: sos_mysql_version: 
+
+sos_path: /opt/sos
+
+# sos
+sos_ip: 127.0.0.1
+sos_port: 8001
+
+sos_web_ip: 127.0.0.1
+sos_web_port: 8000
+
+sos_config_work_timeout: 60
+sos_config_time_between_request: 10
+sos_config_msg_appear_time: 15
+
+sos_config_cache_timeout: 60
+
+sos_logs_level: INFO # DEBUG, INFO, ERROR, DISASTER}
+sos_logs_path: "{{ sos_path }}/log"
+
+sos_redis_ip: 127.0.0.1
+sos_redis_port: 6379
+
+sos_mysql_ip: 127.0.0.1
+sos_mysql_user: sos
+sos_mysql_password: sos
+sos_mysql_db: sos

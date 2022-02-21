@@ -1,0 +1,15 @@
+---
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: restart sos_web
+  service:
+    name: sos_web
+    state: restarted
+
+- name: restart sos_back
+  service:
+    name: sos_back
+    state: restarted

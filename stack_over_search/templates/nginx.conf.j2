@@ -1,0 +1,11 @@
+server {
+  listen 80;
+  listen [::]:80;
+  server_name {{ server_name }};
+  root {{ server_root }};
+  access_log {{ server_access_log }};
+  error_log {{ server_error_log }};
+  location / {
+    proxy_pass http://{{ server_ip }}:{{ server_port }};
+  }
+}

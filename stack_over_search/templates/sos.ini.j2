@@ -1,0 +1,23 @@
+[renewer_settings]
+ws_ip = {{ sos_ip }}
+ws_port = {{ sos_port }}
+work_timeout = {{ sos_config_work_timeout }}
+time_between_request = {{ sos_config_work_timeout }}
+msg_appear_time = {{ sos_config_msg_appear_time }}
+
+[logs]
+level = {{ sos_logs_level }}
+path = {{ sos_logs_path }}
+
+[search_settings]
+cache_timeout = {{ sos_config_cache_timeout }}
+
+[redis]
+ip = {{ sos_redis_ip }}
+port = {{ sos_redis_port }}
+
+[mysql]
+ip = {{ sos_mysql_ip }}
+user = {{ sos_mysql_user }}
+password = {{ sos_mysql_password }}
+db = {{ sos_mysql_db }}

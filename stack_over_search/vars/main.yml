@@ -1,0 +1,34 @@
+---
+# All
+__sos_utils:
+  - python3-setuptools
+  - git
+__sos_services:
+  - nginx
+__sos_get_arch: x86_64-linux-gnu
+
+__sos_src_dir_path: "{{ sos_path }}/src"
+
+__sos_user_name: sos
+__sos_user_id: 713
+__sos_group_name: sos
+__sos_group_id: 713
+
+# Python
+__sos_python_build_depends: []
+__sos_python_install_dir: "{{ sos_path }}"
+
+__sos_python_bin_path: "{{ sos_path }}/bin/python3"
+__sos_python_venv_path: "{{ sos_path }}/venv"
+
+__sos_python_src_path: "{{ __sos_src_dir_path }}/python{{ sos_python_version }}"
+__sos_python_pkg_path: "{{ __sos_src_dir_path }}/python{{ sos_python_version }}.tar.xz"
+__sos_python_configure_flags: "--prefix={{ __sos_python_install_dir }} --enable-loadable-sqlite-extensions --enable-optimizations --enable-option-checking=fatal --with-system-expat --with-system-ffi --without-ensurepip"
+
+__sos_python_pip_version: "21.1.3"
+__sos_python_get_pip_url: "https://github.com/pypa/get-pip/raw/a1675ab6c2bd898ed82b1f58c486097f763c74a9/public/get-pip.py"
+__sos_python_pip_bin_path: "{{ sos_path }}/bin/pip3"
+
+
+__sos_python_env_path: "{{ __sos_python_venv_path }}/bin:{{ sos_path }}/bin:{{ ansible_env.PATH | default('') }}"
+# __sos_python_env_ld: "{{ sos_path }}/lib:{{ ansible_env.LD_LIBRARY_PATH | default('') }}"

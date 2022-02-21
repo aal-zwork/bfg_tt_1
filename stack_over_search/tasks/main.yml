@@ -1,0 +1,43 @@
+---
+- name: Include OS-specific variables {{ ansible_distribution }}-{{ ansible_distribution_major_version }}.
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.vars.yml"
+        - "{{ ansible_distribution }}.vars.yml"
+      skip: true
+
+- name: Ensure utils existed for build
+  include_tasks: "{{ item }}"
+  with_first_found:
+    - files:
+        - "utils/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+        - "utils/{{ ansible_distribution }}.yml"
+        - "utils/utils.yml"
+  tags: ["test"]
+
+- name: Ensure user existed
+  include_tasks: user.yml
+
+- name: Ensure Python {{ sos_python_version }} existed
+  shell:
+    cmd: |
+      [ -f {{ __sos_python_pip_bin_path }} ] && [ -f {{ __sos_python_bin_path }} ] && {{ __sos_python_bin_path }} --version | sed 's/Python //' || echo "0.0.0"
+  register: __sos_python_version
+  changed_when: __sos_python_version.stdout != sos_python_version
+
+- name: Build Python {{ sos_python_version }}
+  include_tasks: python-build.yml
+  when: __sos_python_version.changed
+
+- name: Ensure services existed for work
+  include_tasks: "{{ item }}"
+  with_first_found:
+    - files:
+        - "services/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+        - "services/{{ ansible_distribution }}.yml"
+        - "services/services.yml"
+
+- name: Configure sos
+  include_tasks: sos.yml
+  tags: ["test"]

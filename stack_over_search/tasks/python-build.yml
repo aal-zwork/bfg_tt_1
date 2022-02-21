@@ -1,0 +1,35 @@
+---
+- name: Create directory {{ __sos_python_src_path }}
+  file:
+    path: "{{ __sos_python_src_path }}"
+    state: directory
+    recurse: yes
+
+- name: Ensure Python {{ sos_python_version }} package downloaded
+  get_url:
+    url: https://www.python.org/ftp/python/{{ sos_python_version }}/Python-{{ sos_python_version }}.tar.xz
+    dest: "{{ __sos_python_pkg_path }}"
+
+- name: Build Python {{ sos_python_version }}
+  shell:
+    cmd: |
+      tar -xJC {{ __sos_python_src_path }} --strip-components=1 -f {{ __sos_python_pkg_path }}
+      gnuArch="{{ __sos_get_arch }}" 
+      ./configure --build="$gnuArch" {{ __sos_python_configure_flags }}
+      make -j {{ ansible_processor_cores|default(1) + 1 }} install
+      find /opt/sos/ -depth \( \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) \) -o \( -type f -a -name 'wininst-*.exe' \) \) -exec rm -rf '{}' +
+      cd /opt/sos/bin && ln -fs idle3 idle && ln -fs pydoc3 pydoc && ln -fs python3 python && ln -fs python3-config python-config
+    chdir: "{{ __sos_python_src_path }}"
+
+- name: Get pip {{ __sos_python_pip_version }}
+  shell:
+    cmd: |
+      wget -O get-pip.py {{ __sos_python_get_pip_url }} && \
+      {{ __sos_python_bin_path }} get-pip.py --disable-pip-version-check --no-cache-dir "pip=={{ __sos_python_pip_version }}" && \
+      find /opt/sos -depth \( \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \) -exec rm -rf '{}' +
+    chdir: "{{ __sos_python_src_path }}"
+
+- name: Remove directory {{ __sos_python_src_path }}
+  file:
+    path: "{{ __sos_python_src_path }}"
+    state: absent
