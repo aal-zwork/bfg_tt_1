@@ -1,0 +1,6 @@
+collections:
+  - community.mysql
+
+roles:
+  - davidwittman.redis
+  - geerlingguy.mysql

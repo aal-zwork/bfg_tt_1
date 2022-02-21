@@ -1,9 +1,8 @@
 ### Run for test result
 ```bash
 sudo usermod -aG docker $USER # Need docker rights
-
 ./make.sh # Create image and container
-
+ansible-galaxy install -r requirements.yml
 ansible-playbook -i inventory.yml install.yml
 ```
 
